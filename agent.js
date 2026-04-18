@@ -39,5 +39,5 @@ case'refreshTitle':if(state.messages.length){const am=state.messages.filter(m=>[
 case'newChat':return res.send(await render({config:state.config,messages:[],chatId:Date.now().toString(36),title:'New Chat 💬',showConfig:state.showConfig}));}
 res.send(await render(state))});
 app.post('/newchat',async(req,res)=>{const o=getState(req);res.send(await render({config:o.config,messages:[],chatId:Date.now().toString(36),title:'New Chat 💬',showConfig:o.showConfig}))});
-const PORT=process.env.PORT||3001;
+const PORT=process.env.PORT||3000;
 app.listen(PORT,()=>console.log(`Chat en http://localhost:${PORT} | assets:${ASSETS}`));
