@@ -1,0 +1,18 @@
+{
+  "name": "agents",
+  "version": "1.0.0",
+  "description": "Agent server with shell execution capabilities",
+  "main": "agent.js",
+  "scripts": {
+    "start": "node agent.js",
+    "dev": "nodemon --watch agent.js -e js,html agent.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cookie-parser": "^1.4.6",
+    "marked": "^12.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
