@@ -10,6 +10,7 @@ const CSS=`.ts{color:#484f58;font-size:10px}.si{font-size:11px;color:#8b949e;mar
 const KEY=crypto.scryptSync('your-secret-password-that-is-long-enough','salt-for-the-key',32);
 const enc=t=>{const v=crypto.randomBytes(16),c=crypto.createCipheriv('aes-256-cbc',KEY,v);return v.toString('hex')+':'+Buffer.concat([c.update(t),c.final()]).toString('hex')};
 const dec=t=>{try{const[a,b]=t.split(':'),d=crypto.createDecipheriv('aes-256-cbc',KEY,Buffer.from(a,'hex'));return Buffer.concat([d.update(Buffer.from(b,'hex')),d.final()]).toString()}catch{return null}};
+const unh=s=>s.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"');
 const sh=(cmd,ms=30000)=>new Promise(r=>exec(cmd,{shell:WIN?process.env.SHELL||'powershell':'/bin/sh',timeout:ms,maxBuffer:4<<20,env:{...process.env}},(e,o,s)=>r({stdout:o?.trim()||'',stderr:s?.trim()||'',exitCode:e?.code??0})));
 const BT=[
 {type:'function',function:{name:'run_shell',description:`Shell (${WIN?'pwsh':'sh'}), copy files→${ASSETS}`,parameters:{type:'object',properties:{command:{type:'string'},reason:{type:'string'}},required:['command']}}},
@@ -49,8 +50,8 @@ const ai=async(state,msgs)=>{
       conv.push(m);
       for(const tc of m.tool_calls){let a={};try{a=JSON.parse(tc.function.arguments)}catch{}const cp=c=>conv.push({role:'tool',tool_call_id:tc.id,content:c});
         const fn=tc.function.name;
-        if(fn==='update_prompt'){const e2=enc(JSON.stringify({...cfg,systemPrompt:a.prompt}));if(e2.length>BG)cp(`ERR:too large ${e2.length}/${BG}`);else{pu=a.prompt;cp(`OK ${e2.length}/${BG}`)}log.push({cmd:'update_prompt',reason:'',stdout:'ok',stderr:'',exitCode:0})}
-        else if(fn==='run_shell'){const res=await sh(a.command||'');log.push({cmd:a.command,reason:a.reason,...res});cp([res.stdout&&'OUT:\n'+res.stdout,res.stderr&&'ERR:\n'+res.stderr,'x:'+res.exitCode].filter(Boolean).join('\n\n')||'(none)')}
+        if(fn==='update_prompt'){const e2=enc(JSON.stringify({...cfg,systemPrompt:a.prompt}));if(e2.length>BG)cp(`ERR:too large ${e2.length}/${BG}`);else{pu=unh(a.prompt);cp(`OK ${e2.length}/${BG}`)}log.push({cmd:'update_prompt',reason:unh(a.prompt?.slice(0,60)||''),stdout:'ok',stderr:'',exitCode:0})}
+        else if(fn==='run_shell'){const cmd=unh(a.command||'');const res=await sh(cmd);log.push({cmd:cmd,reason:unh(a.reason||""),...res});cp([res.stdout&&'OUT:\n'+res.stdout,res.stderr&&'ERR:\n'+res.stderr,'x:'+res.exitCode].filter(Boolean).join('\n\n')||'(none)')}
         else{// MCP tool: srv.name__tool_name
           const sep=fn.indexOf('__');const srvName=fn.slice(0,sep),toolName=fn.slice(sep+2);
           const ms=srvs.find(x=>x.name===srvName)||srvs[0];
